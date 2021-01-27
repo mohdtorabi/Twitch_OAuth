@@ -16,12 +16,17 @@ var passport       = require('passport');
 var OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
 var request        = require('request');
 var handlebars     = require('handlebars');
+require('dotenv').config()
+// var ENV = require("dotenv").config();
 
 // Define our constants, you will change these with your own
-const TWITCH_CLIENT_ID = '<YOUR CLIENT ID HERE>';
-const TWITCH_SECRET    = '<YOUR CLIENT SECRET HERE>';
-const SESSION_SECRET   = '<SOME SECRET HERE>';
-const CALLBACK_URL     = '<YOUR REDIRECT URL HERE>';  // You can run locally with - http://localhost:3000/auth/twitch/callback
+const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
+const TWITCH_SECRET    = process.env.TWITCH_SECRET;
+const SESSION_SECRET   = process.env.SESSION_SECRET;
+const CALLBACK_URL     = 'http://localhost:8080/auth/twitch/callback';  // You can run locally with - http://localhost:3000/auth/twitch/callback
+
+// curl --location --request -X GET 'https://api.twitch.tv/helix/users -H 'Authorization: Bearer 2gbdx6oar67tqtcmt49t3wpcgycthx' -H 'Client-Id:
+// wbmytr93xzw8zbg0p1izqyzzc5mbiz'
 
 // Initialize Express and middlewares
 var app = express();
@@ -43,7 +48,11 @@ OAuth2Strategy.prototype.userProfile = function(accessToken, done) {
   };
 
   request(options, function (error, response, body) {
-    if (response && response.statusCode == 200) {
+    console.log("here");
+    if (response && response.statusCode === 200) {
+      console.log((request.params));
+      console.log(response.body);
+      console.log(req.session);
       done(null, JSON.parse(body));
     } else {
       done(JSON.parse(body));
@@ -51,7 +60,10 @@ OAuth2Strategy.prototype.userProfile = function(accessToken, done) {
   });
 }
 
+
+
 passport.serializeUser(function(user, done) {
+  console.log("hello");
     done(null, user);
 });
 
@@ -100,12 +112,15 @@ var template = handlebars.compile(`
 // If user has an authenticated session, display it, otherwise display link to authenticate
 app.get('/', function (req, res) {
   if(req.session && req.session.passport && req.session.passport.user) {
+    console.log(req.session);
     res.send(template(req.session.passport.user));
   } else {
+    console.log(req.session);
     res.send('<html><head><title>Twitch Auth Sample</title></head><a href="/auth/twitch"><img src="http://ttv-api.s3.amazonaws.com/assets/connect_dark.png"></a></html>');
   }
 });
 
-app.listen(3000, function () {
-  console.log('Twitch auth sample listening on port 3000!')
+
+app.listen(8080, function () {
+  console.log('Twitch auth sample listening on port 8080!');
 });
